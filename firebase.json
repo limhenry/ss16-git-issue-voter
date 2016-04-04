@@ -1,0 +1,9 @@
+{
+  "firebase": "ss16-git-issue-voter",
+  "public": "public",
+  "ignore": [
+    "firebase.json",
+    "**/.*",
+    "**/node_modules/**"
+  ]
+}
