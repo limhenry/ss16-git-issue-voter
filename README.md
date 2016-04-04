@@ -1,1 +1,0 @@
-# ss16-git-issue-voter
