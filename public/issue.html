@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>GitHub Issues Voter</title>
+
+	<meta charset=utf-8>
+	<meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+	<meta name=mobile-web-app-capable content=yes>
+	<meta name=apple-mobile-web-app-capable content=yes>
+	<meta name=theme-color content="#4A148C">
+	<link rel="manifest" href="manifest.json">
+
+	<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js" async></script>
+
+	<link rel="import" href="elements/vul.html">
+
+	<link rel="stylesheet" href="styles.css">	
+
+	<style>
+		body{
+			font-family: Roboto, sans-serif;
+			margin: 0;
+			background-color: #eeeeee;
+		}
+		.issueList{
+			margin: 24px auto;
+			max-width: 80%;
+			max-width: 840px;
+		}
+
+		iron-dropdown{
+			margin: 64px 12px;
+			top: 0;
+			min-width: 180px;
+		}	
+		.repo-card{
+			margin: 24px auto;
+			max-width: 80%;
+			max-width: 840px;
+			text-align: center;
+		}
+		.repo-card paper-card{
+			width: 100%;
+		}
+		#repo-card-reponame{
+			font-weight: 400;
+			font-size: 1.8em;
+		}
+		#repo-card-owner{
+			font-weight: 400;
+			margin: 12px;
+		}
+		#repo-card-desc{
+			font-weight: 300;
+		}
+		@media only screen and (max-width: 640px) {
+			.issueList{
+				margin: 0 auto;
+			}
+		}
+	</style>
+	
+	<style is="custom-style">
+		paper-progress{
+			width: 100%;
+			--paper-progress-active-color: #E91E63;
+			--paper-progress-container-color: #eeeeee;
+		}
+		paper-toolbar{
+			--paper-toolbar-background: #4A148C
+		}
+	</style>
+
+</head>
+<body>
+	
+	<template is="dom-bind" id="app">	
+
+	<firebase-auth
+	  auto-login
+	  redirect
+	  location="[[firebaseURL]]"
+	  provider="[[firebaseProvider]]"
+	  on-login="onFirebaseLogin"></firebase-auth>
+
+		<paper-toolbar>
+			<paper-icon-button icon="arrow-back" on-tap="backtosearch"></paper-icon-button>
+			<div class="title" style="margin-left:4px">[[user]]/[[project]]</div>
+			<div id="account_toolbar">
+				<span>[[displayName]]</span>
+				<iron-image src="[[profilepic]]" sizing="contain" onclick="openDropdown()"></iron-image>
+			</div>
+		</paper-toolbar>
+
+		<paper-progress indeterminate class="blue"></paper-progress>
+
+		<iron-dropdown horizontal-align="right" vertical-align="top">
+			<div class="dropdown-content">
+				<div class="dropdown-content-text">
+					<h2>[[displayName]]</h2>
+					<p>@[[username]]</p>
+				</div>
+				<a href="user.html?user=[[username]]"><paper-button raised>Account</paper-button></a>
+				<paper-button raised on-tap="logout">Logout</paper-button>
+			</div>
+		</iron-dropdown>		
+
+      <iron-ajax auto
+          url="[[issueURL]]"
+          handle-as="json"
+          on-response="handleResponse"
+          on-error="_fetchDataFailure"></iron-ajax>
+
+        <div class="repo-card">
+			<paper-card>
+				<div class="card-content">
+					<h2 id="repo-card-reponame">[[project]]</h2>
+					<p id="repo-card-owner">[[user]]</p>
+
+					<!-- <paper-dropdown-menu label="Sort by">
+					  <paper-listbox class="dropdown-content" selected="0">
+					    <paper-item>Issue ID</paper-item>
+					    <paper-item>Vote</paper-item>
+					  </paper-listbox>
+					</paper-dropdown-menu> -->
+
+				</div>
+			</paper-card>
+		</div>
+
+
+		<div class="issueList">
+			<template is="dom-repeat" items="[[ajaxResponse]]">
+				<vote-card id="issue{{item.number}}"
+					issue-url="{{item.html_url}}"
+					issue-title="{{item.title}}"
+					issue-id="{{item.number}}"
+					issue-date="12 hours ago" 
+					issue-owner="{{item.user.login}}"
+					issue-ownerurl="{{item.user.html_url}}"
+					issue-status="{{item.state}}"
+					total-vote=""></vote-card>	
+			</template>
+		</div>
+
+		<div class="meme">
+			<paper-card>
+			  <div class="card-content">
+				<img src="img/meme.jpg">
+				<h3>Congratulations!</h3>
+				<p><i>Or maybe there is an issue, but no one report it to you.</i></p>		  	
+			  </div>
+			</paper-card>
+		</div>
+
+		<script>
+
+			var app = document.querySelector('#app');
+			var firebaseauth = document.querySelector('firebase-auth');			
+			var query = window.location.search.substring(1);
+
+			var vars = query.split("&");
+			var issueUser = "";
+			var issueProject = "";
+
+			var firebaseUserId = "";
+			var token = "";
+
+			app.firebaseURL = 'https://ss16-git-issue-voter.firebaseio.com';
+			app.firebaseProvider = 'github';		
+
+			for (var i=0;i<vars.length;i++) {
+				var pair = vars[i].split("=");
+				if (pair[0] == "user"){
+					issueUser = pair[1];
+					app.user = pair[1];
+				}
+				if (pair[0] == "project"){
+					issueProject = pair[1]
+					app.project = pair[1];
+				}			
+			}			
+
+			app.logout = function(){
+				firebaseauth.logout();
+				location.replace("/");
+			}
+
+			app.onFirebaseLogin = function(event){
+				token = event.detail.user.github.accessToken;
+
+				if (app.project != null || app.owner != null){
+					app.issueURL = "https://api.github.com/repos/" + issueUser+ "/" +  issueProject + "/issues?per_page=999&access_token=" + token;
+				}
+				else{
+					location.replace("search.html?e");
+				}	
+
+				app.profilepic = event.detail.user.github.profileImageURL + ".jpg";
+				app.displayName = event.detail.user.github.displayName;
+				app.username = event.detail.user.github.username;
+
+				firebaseUserId = event.detail.user.uid;
+
+				this.ref = new Firebase(this.firebaseURL + "/issues/" + issueUser + "/" + issueProject);
+				this.ref.on('value', function(snapshot) {
+					app.updateItems(snapshot);
+				});
+
+			}
+
+			app.handleResponse = function(event){
+				var progress = document.querySelector('paper-progress');
+				progress.disabled = true;
+				if(event.detail.xhr.response.length == 0){
+					var meme = document.querySelector('.meme')
+					meme.style.display = "block";
+				}
+				app.ajaxResponse = event.detail.xhr.response;
+			}	
+
+			app._fetchDataFailure = function(){
+				location.replace("search.html?e");
+			}
+
+			app.backtosearch = function(){
+				location.replace("search.html");
+			}
+
+			function openDropdown(){
+				var dropdown = document.querySelector('iron-dropdown');
+				dropdown.opened = true;
+			}
+
+			app.updateItems = function(snapshot){
+				app.items = [];
+				snapshot.forEach(function(childSnapshot) {
+					var item = childSnapshot.val();
+					var issueid = childSnapshot.key();
+					var downvote_count = 0;
+					var upvote_count = 0;
+					var totalvotes = 0;
+
+					if (item.downvote != null){
+						if (Object.keys(item.downvote)[0] == firebaseUserId){
+							document.querySelector('#' + issueid).querySelector('.downvote').querySelector("iron-icon").style.color = "#F44336";
+						}
+						else{
+							document.querySelector('#' + issueid).querySelector('.downvote').querySelector("iron-icon").style.color = "#BDBDBD";							
+						}
+						downvote_count = Object.keys(item.downvote).length;
+					}
+					else{
+						document.querySelector('#' + issueid).querySelector('.downvote').querySelector("iron-icon").style.color = "#BDBDBD";	
+						downvote_count = 0;
+					}
+
+					if (item.upvote != null){
+						if (Object.keys(item.upvote)[0] == firebaseUserId){
+							document.querySelector('#' + issueid).querySelector('.upvote').querySelector("iron-icon").style.color = "#4CAF50";
+						}
+						else{
+							document.querySelector('#' + issueid).querySelector('.upvote').querySelector("iron-icon").style.color = "#BDBDBD";							
+						}		
+						upvote_count = Object.keys(item.upvote).length;
+					}
+					else{
+						document.querySelector('#' + issueid).querySelector('.upvote').querySelector("iron-icon").style.color = "#BDBDBD";	
+						upvote_count = 0;
+					}
+
+					totalvotes = upvote_count - downvote_count;
+					document.querySelector('#' + issueid).querySelector(".totalVote").innerHTML = totalvotes;
+				});				
+			}
+
+			app.upvote = function(targetID){
+				this.ref.child(targetID + "/downvote/" + firebaseUserId).once("value", function(snapshot){
+					if (snapshot.exists()){
+						app.ref.child(targetID + "/downvote/" + firebaseUserId).remove();
+						return;
+					}
+				});
+				this.ref.child(targetID + "/upvote/" + firebaseUserId).once("value", function(snapshot){
+					if (snapshot.exists()){
+						app.ref.child(targetID + "/upvote/" + firebaseUserId).remove();
+						document.querySelector('#' + targetID).querySelector('.upvote').querySelector("iron-icon").style.color = "#BDBDBD";
+						var tempAmount = document.querySelector('#' + targetID).querySelector(".totalVote").innerHTML;
+						document.querySelector('#' + targetID).querySelector(".totalVote").innerHTML = parseInt(tempAmount) - 1;						
+					}
+					else{
+						app.ref.child(targetID + "/upvote/" + firebaseUserId).set({
+							upvote: true
+						});
+					}
+				});				
+			}
+
+			app.downvote = function(targetID){
+				this.ref.child(targetID + "/upvote/" + firebaseUserId).once("value", function(snapshot){
+					if (snapshot.exists()){
+						app.ref.child(targetID + "/upvote/" + firebaseUserId).remove();	
+						return;
+					}
+				});
+				this.ref.child(targetID + "/downvote/" + firebaseUserId).once("value", function(snapshot){
+					if (snapshot.exists()){
+						app.ref.child(targetID + "/downvote/" + firebaseUserId).remove();
+						document.querySelector('#' + targetID).querySelector('.downvote').querySelector("iron-icon").style.color = "#BDBDBD";
+						var tempAmount = document.querySelector('#' + targetID).querySelector(".totalVote").innerHTML;
+						document.querySelector('#' + targetID).querySelector(".totalVote").innerHTML = parseInt(tempAmount) + 1;
+					}
+					else{
+						app.ref.child(targetID + "/downvote/" + firebaseUserId).set({
+							downvote: true
+						});
+					}
+				});													
+			}			
+
+			document.addEventListener('upvote', function(event) {
+				var targetID = event.target.id;
+				app.upvote(targetID);
+			});			
+
+			document.addEventListener('downvote', function(event) {
+				var targetID = event.target.id;
+				app.downvote(targetID);
+			});					
+		</script>		
+
+	</template>
+
+</body>
+</html>

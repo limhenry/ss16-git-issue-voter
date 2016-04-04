@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>GitHub Issues Voter</title>
+	
+	<meta charset=utf-8>
+	<meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+	<meta name=mobile-web-app-capable content=yes>
+	<meta name=apple-mobile-web-app-capable content=yes>
+	<meta name=theme-color content="#4A148C">
+	<link rel="manifest" href="manifest.json">
+
+	<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js" async></script>
+
+	<link rel="import" href="elements/vul.html">
+
+	<link rel="stylesheet" href="styles.css">
+
+	<style>
+		body{
+			font-family: Roboto, sans-serif;
+			margin: 0;
+			background-color: #eeeeee;
+		}
+
+		iron-dropdown{
+			margin: 64px 12px;
+			top: 0;
+			min-width: 180px;
+		}		
+
+		.offline-card{
+			margin: 24px auto;
+			max-width: 80%;
+			max-width: 840px;
+			display: none;
+			text-align: center;
+		}
+
+		.no-repo{
+			margin: 24px auto;
+			max-width: 80%;
+			max-width: 840px;
+			display: none;
+			text-align: center;
+		}
+
+		.no-repo paper-card{
+			width: 100%;
+		}
+
+		.no-repo h2{
+			font-size: 1.2em;
+			font-weight: 400;
+		}
+		.no-repo img{
+			width: 90%;
+			max-width: 480px;	
+			margin: 12px;			
+		}
+
+		.offline-card a{
+			text-decoration: none;
+			font-weight: 400;
+			color: black;
+			font-size: 1.8em;
+			display: block;
+			margin-top: 12px;
+		}
+		.offline{
+			display: inline-block;
+			margin: 6px 0;
+		}
+		#user_blog{
+			display: block;
+			text-decoration: none;
+			color: black;
+			font-weight: 300;
+			margin-bottom: 12px;
+			font-size: 1em;
+		}
+		.offline-card paper-card{
+			width: 100%;
+		}
+
+	</style>
+	
+	<style is="custom-style">
+		paper-progress{
+			width: 100%;
+			--paper-progress-active-color: #E91E63;
+			--paper-progress-container-color: #eeeeee;
+		}
+		paper-toolbar{
+			--paper-toolbar-background: #4A148C;
+		}
+	</style>
+</head>
+<body>
+	
+	<template is="dom-bind" id="app">	
+
+		<paper-toast text="Your draft has been discarded."></paper-toast>
+
+		<firebase-auth
+		  auto-login
+		  redirect
+		  location="[[firebaseURL]]"
+		  provider="[[firebaseProvider]]"
+		  on-login="onFirebaseLogin"></firebase-auth>	
+
+		<paper-toolbar>
+			<paper-icon-button icon="arrow-back" on-tap="backtosearch"></paper-icon-button>
+			<div class="title" style="margin-left:4px">[[user]]</div>
+			<div id="account_toolbar">
+				<span>[[displayName]]</span>
+				<iron-image src="[[profilepic]]" sizing="contain" onclick="openDropdown()"></iron-image>
+			</div>
+		</paper-toolbar>
+
+		<paper-progress indeterminate class="blue"></paper-progress>
+
+		<iron-dropdown horizontal-align="right" vertical-align="top">
+			<div class="dropdown-content">
+				<div class="dropdown-content-text">
+					<h2>[[displayName]]</h2>
+					<p>@[[username]]</p>
+				</div>
+				<a href="user.html?user=[[username]]"><paper-button raised>Account</paper-button></a>
+				<paper-button raised on-tap="logout">Logout</paper-button>
+			</div>
+		</iron-dropdown>		
+
+      <iron-ajax auto
+          url="[[issueURL]]"
+          handle-as="json"
+          on-response="handleResponse"
+          on-error="_fetchDataFailure"></iron-ajax>
+
+      <iron-ajax auto
+          url="[[issueURL2]]"
+          handle-as="json"
+          on-response="handleResponse2"
+          on-error="_fetchDataFailure"></iron-ajax>          
+
+          <div class="offline-card">
+			<paper-card>
+				<div class="card-content">
+					<iron-image src="[[user_avatar_url]]" sizing="contain" id="user_avatar_image"></iron-image>
+					<a href="[[html_url]]" target="_blank">[[user_name]]</a>
+					<a href="[[user_blog]]" target="_blank" id="user_blog">[[user_blog]]</a>
+					<div class="offline">
+						<paper-toggle-button>Available Offline</paper-toggle-button>
+					</div>
+				</div>
+			</paper-card>
+          </div>
+
+		<div class="issueList">
+			<template is="dom-repeat" items="[[ajaxResponse]]">
+				<repo-card 
+					repo-title="{{item.name}}"
+					repo-description="{{item.description}}"
+					repo-url="{{item.name}}"
+					repo-owner="[[user]]"
+					repo-issueamount="{{item.open_issues}}"
+					repo-originalurl="{{item.html_url}}"></repo-card>	
+			</template>
+		</div>
+
+          <div class="no-repo">
+			<paper-card>
+				<div class="card-content">
+					<img src="img/meme2.jpg">
+					<h2>Sh*t! This user doesn't have any repo.</h2>
+				</div>
+			</paper-card>
+          </div>		
+
+		<script>
+			var app = document.querySelector('#app');
+			var firebaseauth = document.querySelector('firebase-auth');			
+			var query = window.location.search.substring(1);
+			var toast = document.querySelector('paper-toast');
+
+			var vars = query.split("&");
+			var issueUser = "";
+			var issueProject = "";
+
+			var token = "";
+
+			for (var i=0;i<vars.length;i++) {
+				var pair = vars[i].split("=");
+				if (pair[0] == "user"){
+					issueUser = pair[1];
+					app.user = pair[1];
+				}		
+			}
+
+			app.firebaseURL = 'https://ss16-git-issue-voter.firebaseio.com';
+			app.firebaseProvider = 'github';
+
+			var toggle = document.querySelector("paper-toggle-button");
+
+			if (localStorage.getItem("ss16_limhenry:" + app.user.toLowerCase())){
+				toggle.checked = true;
+			}
+			else{
+				toggle.checked = false;
+			}
+			toggle.addEventListener('change', function () {
+			  if (this.checked) {
+			    localStorage.setItem("ss16_limhenry:" + app.user.toLowerCase(), JSON.stringify(app.ajaxResponse));
+				toast.text = "Downloaded.";
+				toast.open();			    
+			  } else {
+			    localStorage.removeItem("ss16_limhenry:" + app.user.toLowerCase());
+				toast.text = "Removed.";
+				toast.open();						    
+			  }
+			}); 
+
+			app.logout = function(){
+				firebaseauth.logout();
+				location.replace("/");
+			}					
+
+			app.onFirebaseLogin = function(event){
+				token = event.detail.user.github.accessToken;
+				app.profilepic = event.detail.user.github.profileImageURL + ".jpg";
+				app.displayName = event.detail.user.github.displayName;
+				app.username = event.detail.user.github.username;
+
+				app.issueURL = "https://api.github.com/users/" + issueUser + "/repos?per_page=999&access_token=" + token;
+
+				app.issueURL2 = "https://api.github.com/users/" + issueUser + "?access_token=" + token;
+			}
+
+			app.handleResponse = function(event){
+				var progress = document.querySelector('paper-progress');
+				progress.disabled = true;
+				app.ajaxResponse = event.detail.xhr.response;
+				if(event.detail.xhr.response.length == 0){
+					document.querySelector('.no-repo').style.display = 'block';
+				};
+			}	
+
+			app.handleResponse2 = function(event){
+				var item = event.detail.xhr.response;
+				app.user_avatar_url = item.avatar_url;
+				app.user_name = item.name;
+				app.user_blog = item.blog;
+				app.public_repos = item.public_repos;
+				app.html_url = item.html_url;
+				document.querySelector('.offline-card').style.display = 'block';
+			}				
+
+			app._fetchDataFailure = function(){
+				location.replace("search.html?e");
+			}
+
+			app.backtosearch = function(){
+				location.replace("search.html");
+			}
+
+			function openDropdown(){
+				var dropdown = document.querySelector('iron-dropdown');
+				dropdown.opened = true;
+			}			
+		</script>		
+
+	</template>
+	
+</body>
+</html>

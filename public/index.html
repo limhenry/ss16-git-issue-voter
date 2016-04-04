@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>GitHub Issues Voter</title>
+	<link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+	<meta charset=utf-8>
+	
+	<meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+	<meta name=mobile-web-app-capable content=yes>
+	<meta name=apple-mobile-web-app-capable content=yes>
+	<meta name=theme-color content="#4A148C">
+	<link rel="manifest" href="manifest.json">
+		
+	<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js" async></script>
+
+	<link rel="import" href="elements/vul.html">
+	
+	<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+	<template is="dom-bind" id="app">
+
+		<paper-toast text="Your draft has been discarded."></paper-toast>
+
+		<firebase-auth
+		  redirect
+		  location="[[firebaseURL]]"
+		  provider="[[firebaseProvider]]"
+		  on-error="onFirebaseError"
+		  on-login="onFirebaseLogin"></firebase-auth>
+		<paper-toast id="errorToast"></paper-toast>
+
+		<paper-card class="hello">
+		  <div class="card-content">
+		  	<img src="img/launcher-icon-2x.png" width="64px" style="margin-top: 12px">
+			<h1>GitHub Issues Voter</h1>
+			<h3>Give a vote to any issues you interested.</h3>	
+			<p>Love an issues? Hate an issues?</p>
+			<p>Now you can upvote or downvote any issues<br>just a single click.</p>
+			<p>Sounds cool right? Click the login button below to continue!</p>
+			<paper-button raised id="githublogin" on-tap="login"><iron-icon icon="custom-logo:github" style="margin: 0px 5px 2px 0px"></iron-icon>Login with GitHub</paper-button>
+		  </div>
+		</paper-card>		
+
+		<script>
+			var app = document.querySelector('#app');
+			var firebaseauth = document.querySelector('firebase-auth');
+			var toast = document.querySelector('paper-toast');
+
+			app.firebaseURL = 'https://ss16-git-issue-voter.firebaseio.com';
+			app.firebaseProvider = 'github';
+
+			toast.text = "Connecting to Firebase...";
+			toast.opened = true;				
+
+			app.login = function(){
+				toast.text = "Logging In...";
+				toast.opened = true;			
+				firebaseauth.login();
+			}
+
+			app.onFirebaseLogin = function(){
+				toast.text = "Redirecting...";
+				toast.opened = true;					
+				location.replace("search.html");
+			}
+			app.onFirebaseError = function(){
+				toast.text = "Something wrong. Please try again.";
+				toast.opened = true;					
+				console.log("error liao")
+			}
+			
+		</script>
+	</template>
+
+	<script type="text/javascript" src="custom-sw.js"></script>
+	
+</body>
+</html>

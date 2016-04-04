@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>GitHub Issues Voters</title>
+	<link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+	<meta charset=utf-8>
+	<meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+	<meta name=mobile-web-app-capable content=yes>
+	<meta name=apple-mobile-web-app-capable content=yes>
+	<meta name=theme-color content="#4A148C">
+	<link rel="manifest" href="manifest.json">
+
+	<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js" async></script>
+	<link rel="import" href="elements/vul.html">
+
+	<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+	
+	<template is="dom-bind" id="app">
+
+	<firebase-auth
+	  auto-login
+	  redirect
+	  location="[[firebaseURL]]"
+	  provider="[[firebaseProvider]]"
+	  on-login="onFirebaseLogin"></firebase-auth>
+
+	<paper-toast text="Your draft has been discarded."></paper-toast>
+
+	<div id="account">
+		<span>[[displayName]]</span>
+		<iron-image src="[[profilepic]]" sizing="contain" onclick="openDropdown()"></iron-image>
+	</div>
+
+	<iron-dropdown horizontal-align="right" vertical-align="top">
+		<div class="dropdown-content">
+			<div class="dropdown-content-text">
+				<h2>[[displayName]]</h2>
+				<p>@[[username]]</p>
+			</div>
+			<a href="user.html?user=[[username]]"><paper-button raised>Account</paper-button></a>
+			<paper-button raised on-tap="logout">Logout</paper-button>
+		</div>
+	</iron-dropdown>	
+
+	<paper-card class="hello_search">
+	  <div class="card-content">
+	  	<img src="img/launcher-icon-2x.png" width="64px" style="margin-top: 12px">
+		<h1>Search Issues</h1>
+		<form action="/issue.html" method="get" id="form">
+			<paper-input label="Owner Name" name="user" id="user"></paper-input>
+			<paper-input label="Project Name (Optional)" name="project" id="project"></paper-input>
+			<paper-button raised id="githublogin" onclick="submitForm()">Search</paper-button>
+		</form>
+	  </div>
+	</paper-card>
+
+	<script>	
+		
+		var app = document.querySelector('#app');
+
+		var toast = document.querySelector('paper-toast');
+
+		var firebaseauth = document.querySelector('firebase-auth');
+
+		var token = "";
+
+		app.firebaseURL = 'https://ss16-git-issue-voter.firebaseio.com';
+		app.firebaseProvider = 'github';
+
+		app.logout = function(){
+			firebaseauth.logout();
+			location.replace("/");
+		}
+
+		app.onFirebaseLogin = function(event){
+			app.profilepic = event.detail.user.github.profileImageURL + ".jpg";
+			app.displayName = event.detail.user.github.displayName;
+			app.username = event.detail.user.github.username;
+		}
+
+		function submitForm() {
+			var form = document.querySelector('#form');
+			var user = document.querySelector('#user').value;
+			var project = document.querySelector('#project').value;
+			if (user && project){
+				// form.submit();
+				location.replace("issue.html?user=" + user + "&project=" + project)
+			}
+			else if (user && !project){
+				location.replace("user.html?user=" + user)
+			}
+			else{
+				toast.text = "Try Again.";
+				toast.open();				
+			}
+		}
+
+		function openDropdown(){
+			var dropdown = document.querySelector('iron-dropdown');
+			dropdown.opened = true;
+		}
+
+		if(window.location.search.substring(1)){
+			toast.text = "Search failed. Please try again.";
+			toast.open();
+		}
+		
+	</script>
+	</template>
+
+</body>
+</html>

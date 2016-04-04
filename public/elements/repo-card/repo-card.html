@@ -1,0 +1,99 @@
+<dom-module id="repo-card">
+	<template>
+		<style>
+			:host {
+				display: block;
+			}
+			paper-card{
+				width: 100%;
+			}
+			.card-content{
+			    padding: 16px;				
+			}
+
+			.repoTitle{
+				margin: 6px 18px 0px 0px;
+				font-weight: 400;
+				font-size: 1.1em;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				display: block;
+				text-decoration: none;
+				color: black;						
+			}
+			.repoDescription{
+				font-weight: 300;
+				font-size: 1em;
+				word-break: break-word;
+			}
+
+			.openIssues{
+				display: inline;
+				vertical-align: middle;
+				color: #212121;
+				font-weight: 300;
+				font-size: 0.9em;		
+				margin-bottom: 6px;		
+			}
+			.information{
+				display: inline-block;
+				width: calc(100% - 42px);				
+			}
+			.popout{
+				vertical-align: middle;
+				float: right;
+				margin-top: 2px;
+			}
+			.popout a{
+				color: #212121;
+			}
+		</style>
+
+		<style is="custom-style">
+			.bug{
+				--iron-icon-height: 20px;
+				--iron-icon-width: 20px;
+				--iron-icon-fill-color: #212121;
+			}
+		</style>
+
+		
+		<paper-card>
+		  <div class="card-content">
+		  	<div class="information">
+		  		<a class="repoTitle" href="[[repoFinalUrl]]">[[repoTitle]]</a>
+				<p class="repoDescription">[[repoDescription]]</p>
+				<iron-icon icon="icons:bug-report" class="bug"></iron-icon>
+				<p class="openIssues">Open Issues: [[repoIssueamount]]</p>
+		  	</div>
+		  	<div class="popout">
+		  		<a href="[[repoOriginalurl]]" target="_blank"><paper-icon-button icon="icons:open-in-new"></paper-icon-button></a>
+		  	</div>
+		  </div>
+		</paper-card>
+	</template>
+	<script>
+		Polymer({
+			is: 'repo-card',
+
+	      properties: {
+
+	      	repoFinalUrl : {
+	      		type: String,
+	      		computed: 'computeURL(repoTitle, repoOwner)'
+	      	},
+
+
+	        totalVote : {
+	        	type: Number
+	        }
+
+	      },
+
+	      computeURL: function(repoTitle, repoOwner){
+	      	return "issue.html?user=" + repoOwner + "&project=" + repoTitle;
+	      }
+		});
+	</script>
+</dom-module>

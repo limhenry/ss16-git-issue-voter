@@ -1,0 +1,180 @@
+body{
+	font-family: Roboto, sans-serif;
+	margin: 0;
+	background-color: #37474F;
+}
+
+.hello{
+	transform: translate(-50%, -50%);
+	position: fixed;
+	top: 50%;
+	left: 50%;				
+	text-align: center;
+	min-width: 360px;
+	max-width: 460px;
+	display: block;
+	font-weight: 300;
+}
+
+.hello_search{
+	transform: translate(-50%, -50%);
+	position: fixed;
+	top: 50%;
+	left: 50%;				
+	text-align: center;
+	min-width: 360px;
+	max-width: 460px;
+	display: block;
+	font-weight: 300;
+}
+
+.card-content h1,h3{
+	font-weight: 400;
+}
+paper-card .card-content{
+	padding: 16px 22px;
+}
+#githublogin{
+	margin: 16px 0;
+	width: 100%;
+	background-color: #673AB6;
+	color: white;
+}
+#account{
+	float: right;
+	margin: 18px 28px;	
+	color: white;
+}
+#account span{
+	margin-right: 8px;
+	opacity: 0.85;
+	font-weight: 400;
+	vertical-align: middle;
+}
+#account iron-image{
+	width: 32px;
+	height: 32px;
+	vertical-align: middle;
+}
+iron-dropdown{
+	margin: 56px 30px;
+	top: 0;
+	min-width: 180px;
+}
+.dropdown-content {
+	padding-bottom: 6px;
+	background-color: white;
+	border-radius: 3px;
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+}
+.dropdown-content-text{
+	padding: 18px 16px;
+}
+
+.dropdown-content h2{
+	margin: 4px 0px;
+	font-size: 1.1em;
+	font-weight: 500;
+}
+.dropdown-content p{
+	margin: 0;
+	font-weight: 300;
+}
+.dropdown-content a{
+	text-decoration: none;
+}
+.dropdown-content paper-button{
+	display: block;
+	margin: 0 auto;
+	width: 80%;
+	margin-bottom: 6px;
+	background-color: #673AB6;
+	color: white;
+}
+
+.issueList{
+	margin: 24px auto;
+	max-width: 80%;
+	max-width: 840px;
+}
+#account_toolbar span{
+	margin-right: 8px;
+	font-weight: 400;
+	vertical-align: middle;
+}
+#account_toolbar iron-image{
+	width: 32px;
+	height: 32px;
+	vertical-align: middle;
+}	
+
+.meme{
+	display: none;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	max-width: 840px;
+	margin: 0 auto;
+	margin-bottom: 24px;
+}
+.meme paper-card{
+	width: 100%;
+}
+.meme img{
+	width: 90%;
+	max-width: 480px;	
+	margin: 12px;
+}
+.meme h3{
+	font-weight: 400;
+	margin: 4px;
+	font-size: 1.5em;
+}
+.meme p{
+	margin: 4px;
+	font-weight: 300;
+	font-size: 0.9em;
+}
+
+#user_avatar_image{
+	margin-top: 12px;
+	width: 96px;
+	height: 96px;
+}
+
+@media only screen and (max-width: 640px) {
+	.issueList{
+		margin: 0 auto;
+	}
+}
+
+@media only screen and (max-width: 480px) {
+    .hello {
+		min-width: auto;
+		transform: none;
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		width: 100%;
+		max-width: 90%;
+		margin: 24px auto;
+    }
+    .hello_search {
+		min-width: auto;
+		transform: none;
+		position: absolute;
+		top: 24px;
+		left: 0;
+		right: 0;
+		width: 100%;
+		max-width: 90%;
+		margin: 48px auto;
+    }    
+	#account_toolbar span{
+		display: none;
+	}
+	#account_toolbar iron-image{
+		margin-left: 8px;
+	}    
+}
